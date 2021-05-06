@@ -1,8 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, HostListener, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import {ApicallsService} from '../apicalls.service';
 import {Chart} from 'node_modules/chart.js';
-import { HttpClient } from '@angular/common/http';
 
 @Component({
   selector: 'app-main',
@@ -19,14 +18,15 @@ export class MainComponent implements OnInit {
   public displayCount:Boolean = false;
   public displayChart:Boolean = false
 
-  constructor(private router:Router,
-              private api : ApicallsService,private http: HttpClient) { }
+  constructor(private router:Router, private ref: ChangeDetectorRef,
+              private api : ApicallsService) { }
+
 
   ngOnInit(): void {
-   
+       
   }
   public searchUser(){
-    this.api.getUserName(this.userName).subscribe(res => {
+    this.api.getUserName(this.userName).subscribe( res => {
       this.usersCount = res.total_count
       this.usersDetails = res.items
       this.usersDetails = this.usersDetails.splice(0,10)
@@ -40,7 +40,7 @@ export class MainComponent implements OnInit {
         labels: [this.usersDetails[0].login, this.usersDetails[1].login,this.usersDetails[2].login,this.usersDetails[3].login,this.usersDetails[4].login,this.usersDetails[5].login,this.usersDetails[6].login,this.usersDetails[7].login,this.usersDetails[8].login,this.usersDetails[9].login ],
         datasets: [{
             label: 'Number of Followers for the above users',
-            data: [12, 19, 3, 5, 2, 3,21,30,4,28],
+            data:this.followersCountArr,
             backgroundColor: [
                 'rgba(255, 99, 132, 0.2)',
                 'rgba(54, 162, 235, 0.2)',
@@ -78,6 +78,7 @@ export class MainComponent implements OnInit {
 });
 
     })
+    this.ref.detectChanges();
   }
 
   public goToProfile(user){
@@ -85,15 +86,14 @@ export class MainComponent implements OnInit {
   }
 
   followersCount(){
-    var tempArr = []
     for(let i=0;i<this.usersDetails.length;i++){
-      this.api.getFollowers(this.usersDetails[i].followers_url).subscribe(data=> {
-        tempArr.push(data.length)
-      })   
+      this.api.getFollowers(this.usersDetails[i].followers_url).subscribe(data =>{
+        this.followersCountArr.push(data.length)
+      })
     }
-    //console.log(this.followersCountArr.toString())
-    //let iter = tempArr.values()
-    console.log(tempArr.values().next().value)
+    
   }
+
+ 
 
 }
